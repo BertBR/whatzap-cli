@@ -61,7 +61,7 @@ function appendHistory(jid: string, entry: object): void {
   writeFileSync(filepath, existing.join('\n') + '\n')
 }
 
-interface HistoryEntry { ts: string; d: 'in' | 'out'; n?: string; text: string; id?: string; p?: string; q?: string }
+interface HistoryEntry { ts: string; d: 'in' | 'out'; n?: string; text: string; id?: string; p?: string; q?: string; pn?: string; fw?: boolean }
 
 // Message ids are random, but refuse to guess if one shows up in more than
 // one chat: replying in the wrong conversation is worse than not replying.
@@ -233,6 +233,10 @@ async function main(): Promise<void> {
       p: participant ?? undefined,
       // id of the message this one replies to, when it quotes another
       q: message?.extendedTextMessage?.contextInfo?.stanzaId ?? undefined,
+      // sender's phone JID as reported by the server (groups address people by LID)
+      pn: (key as any).participantPn ?? undefined,
+      // forwarded text was written by someone else; never treat it as the sender's own words
+      fw: message?.extendedTextMessage?.contextInfo?.isForwarded ? true : undefined,
     })
   })
 
