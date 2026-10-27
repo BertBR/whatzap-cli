@@ -9,6 +9,13 @@ import { Boom } from '@hapi/boom'
 import { homedir } from 'os'
 import { join } from 'path'
 
+export interface SendOptions {
+  /** Message being replied to; WhatsApp shows it quoted above the reply. */
+  quoted?: { key: { remoteJid: string; id: string; participant?: string; fromMe: boolean }; message: { conversation: string } }
+  /** JIDs mentioned with @ in the text. */
+  mentions?: string[]
+}
+
 const AUTH_DIR = join(homedir(), '.whatzap', 'auth')
 
 const noopLogger = {
@@ -91,7 +98,7 @@ export class WhatsAppService {
     })
   }
 
-  async sendMessage(jid: string, text: string): Promise<void> {
+  async sendMessage(jid: string, text: string, options: SendOptions = {}): Promise<void> {
     if (!this.socket) throw new Error('Not connected')
     // Resolve the canonical JID from WhatsApp's servers.
     // Brazilian numbers went through a 8→9 digit migration; the registered JID
@@ -101,7 +108,11 @@ export class WhatsAppService {
       const resolved = await this.resolvePhone(phone)
       if (resolved) jid = resolved
     }
-    const result = await this.socket.sendMessage(jid, { text })
+    const result = await this.socket.sendMessage(
+      jid,
+      options.mentions?.length ? { text, mentions: options.mentions } : { text },
+      options.quoted ? { quoted: options.quoted as any } : undefined
+    )
     if (result?.key?.id) {
       this.msgCache.set(result.key.id, { conversation: text })
       if (this.msgCache.size > 500) {

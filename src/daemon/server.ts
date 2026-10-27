@@ -61,6 +61,29 @@ function appendHistory(jid: string, entry: object): void {
   writeFileSync(filepath, existing.join('\n') + '\n')
 }
 
+interface HistoryEntry { ts: string; d: 'in' | 'out'; n?: string; text: string; id?: string; p?: string }
+
+// Message ids are random, but refuse to guess if one shows up in more than
+// one chat: replying in the wrong conversation is worse than not replying.
+function findHistoryEntry(id: string): { jid: string; entry: HistoryEntry } | null {
+  const found: { jid: string; entry: HistoryEntry }[] = []
+  for (const jid of watchSet) {
+    const filepath = join(HISTORY_DIR, jidToFilename(jid) + '.jsonl')
+    if (!existsSync(filepath)) continue
+    for (const line of readFileSync(filepath, 'utf8').split('\n')) {
+      if (!line.trim()) continue
+      try {
+        const entry = JSON.parse(line) as HistoryEntry
+        if (entry.id === id) found.push({ jid, entry })
+      } catch {
+        // skip malformed line
+      }
+    }
+  }
+  if (found.length > 1) throw new Error(`Message '${id}' matches ${found.length} chats; not replying`)
+  return found[0] ?? null
+}
+
 function cleanup(): void {
   if (server) server.close()
   if (existsSync(SOCK_PATH)) unlinkSync(SOCK_PATH)
@@ -69,7 +92,7 @@ function cleanup(): void {
 }
 
 async function handleRequest(line: string, socket: net.Socket): Promise<void> {
-  let req: { command: string; jid?: string; text?: string }
+  let req: { command: string; jid?: string; text?: string; id?: string }
   try {
     req = JSON.parse(line)
   } catch {
@@ -82,6 +105,24 @@ async function handleRequest(line: string, socket: net.Socket): Promise<void> {
   } else if (req.command === 'send') {
     try {
       await service.sendMessage(req.jid!, req.text!)
+      socket.write(JSON.stringify({ ok: true }) + '\n')
+    } catch (err) {
+      socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
+    }
+  } else if (req.command === 'reply') {
+    // Reply quoting a recorded message and mentioning its sender, so the
+    // answer stays attached to the question in busy groups.
+    try {
+      const found = findHistoryEntry(req.id!)
+      if (!found) throw new Error(`Message '${req.id}' not found in watched history`)
+      const { jid, entry } = found
+      const quoted = {
+        key: { remoteJid: jid, id: entry.id!, participant: entry.p, fromMe: entry.d === 'out' },
+        message: { conversation: entry.text },
+      }
+      const mention = entry.d === 'in' && entry.p ? entry.p : null
+      const text = mention ? `@${mention.split('@')[0]} ${req.text!}` : req.text!
+      await service.sendMessage(jid, text, { quoted, mentions: mention ? [mention] : [] })
       socket.write(JSON.stringify({ ok: true }) + '\n')
     } catch (err) {
       socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
@@ -172,6 +213,7 @@ async function main(): Promise<void> {
         ts: new Date().toISOString(),
         d: 'out',
         text,
+        id: key.id ?? undefined,
       })
       return
     }
@@ -185,6 +227,9 @@ async function main(): Promise<void> {
       d: 'in',
       n: pushName ?? undefined,
       text,
+      // id and sender let `whatzap reply` quote the message and mention its author
+      id: key.id ?? undefined,
+      p: participant ?? undefined,
     })
   })
 

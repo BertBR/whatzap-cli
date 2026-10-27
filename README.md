@@ -60,6 +60,7 @@ Installs the Claude Code skill and authenticates with your WhatsApp account via 
 | `whatzap logout` | Disconnect and delete saved credentials |
 | `whatzap send-message <phone> <message>` | Send a text message (phone with country code) |
 | `whatzap send-group <group name> <message>` | Send a message to a WhatsApp group |
+| `whatzap reply <message id> <message>` | Reply to a recorded message, quoting it and mentioning its sender |
 | `whatzap find-contact <name>` | Search macOS Contacts by name, returns JSON |
 | `whatzap add-watch <phone\|group name>` | Start recording messages for a contact or group |
 | `whatzap remove-watch <phone\|group name>` | Stop recording messages |
@@ -99,6 +100,18 @@ whatzap send-group family Oi pessoal!
 whatzap send-group Work Team Meeting in 5 minutes
 ```
 
+### Reply to a Message
+
+```bash
+whatzap reply <message id> <message>
+```
+
+Replies to a message recorded in a watched contact or group (see [Watch a Contact or Group](#watch-a-contact-or-group)). The reply quotes the original message and, for incoming messages, starts with an @mention of its sender, so the answer stays attached to the question in busy groups. The message id is the `id` field of the history entry.
+
+```bash
+whatzap reply 3EB05F011B6AFCBB71534D Deploy is live!
+```
+
 ### Find a Contact (macOS only)
 
 ```bash
@@ -131,7 +144,7 @@ whatzap add-watch Work Team
 Messages are written to `~/.whatzap/history/` as newline-delimited JSON:
 
 ```json
-{"ts":"2026-03-22T10:00:00.000Z","d":"in","n":"Carlos","text":"Hello!"}
+{"ts":"2026-03-22T10:00:00.000Z","d":"in","n":"Carlos","text":"Hello!","id":"3EB05F011B6AFCBB71534D","p":"120363000000000@lid"}
 {"ts":"2026-03-22T10:01:00.000Z","d":"out","text":"Sure, see you there!"}
 ```
 
@@ -141,6 +154,8 @@ Messages are written to `~/.whatzap/history/` as newline-delimited JSON:
 | `d` | `"in"` (received) or `"out"` (sent) |
 | `n` | Sender display name (incoming only) |
 | `text` | Message text |
+| `id` | WhatsApp message id, used by `whatzap reply` |
+| `p` | Sender JID (incoming group messages only), mentioned by `whatzap reply` |
 
 Non-text messages (images, audio, stickers) are not recorded. History is capped at the 100 most recent messages per contact or group.
 
