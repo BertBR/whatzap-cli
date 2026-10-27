@@ -26,7 +26,7 @@ Usage:
   whatzap logout                         Log out and remove saved credentials
   whatzap send-message <phone> <message> Send a text message to a phone number
   whatzap send-group <group name> <message> Send a text message to a group
-  whatzap reply <message id> <message>   Reply quoting a recorded message and mentioning its sender
+  whatzap reply [--mention <jid>]... <message id> <message>  Reply quoting a recorded message and mentioning its sender
   whatzap find-contact <query>           Search macOS Contacts by name, returns JSON
   whatzap stop                           Stop the background session
   whatzap add-watch <phone|group name>    Start recording messages for a contact or group
@@ -115,13 +115,16 @@ async function main() {
     }
 
     case 'reply': {
+      // --mention <jid> (repeatable) mentions more people; the text must carry "@<number>" for each
+      const extra: string[] = []
+      while (args[0] === '--mention' && args[1]) { extra.push(args[1]); args.splice(0, 2) }
       const [id, ...rest] = args
       const message = rest.join(' ')
       if (!id || !message) {
         console.error('Usage: whatzap reply <message id> <message>')
         process.exit(1)
       }
-      await reply(id, message)
+      await reply(id, message, extra)
       break
     }
 

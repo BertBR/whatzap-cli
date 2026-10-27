@@ -80,8 +80,8 @@ export async function sendViaDaemon(jid: string, text: string): Promise<void> {
   if (!res.ok) throw new Error(res.error ?? 'Send failed')
 }
 
-export async function replyViaDaemon(id: string, text: string): Promise<void> {
-  const res = await sendRequest<{ ok: boolean; error?: string }>({ command: 'reply', id, text }, 30000)
+export async function replyViaDaemon(id: string, text: string, mentions: string[] = []): Promise<void> {
+  const res = await sendRequest<{ ok: boolean; error?: string }>({ command: 'reply', id, text, mentions }, 30000)
   if (!res.ok) throw new Error(res.error ?? 'Reply failed')
 }
 

@@ -92,7 +92,7 @@ function cleanup(): void {
 }
 
 async function handleRequest(line: string, socket: net.Socket): Promise<void> {
-  let req: { command: string; jid?: string; text?: string; id?: string }
+  let req: { command: string; jid?: string; text?: string; id?: string; mentions?: string[] }
   try {
     req = JSON.parse(line)
   } catch {
@@ -122,7 +122,8 @@ async function handleRequest(line: string, socket: net.Socket): Promise<void> {
       }
       const mention = entry.d === 'in' && entry.p ? entry.p : null
       const text = mention ? `@${mention.split('@')[0]} ${req.text!}` : req.text!
-      await service.sendMessage(jid, text, { quoted, mentions: mention ? [mention] : [] })
+      const extra = (req.mentions ?? []).filter((m) => m !== mention)
+      await service.sendMessage(jid, text, { quoted, mentions: [...(mention ? [mention] : []), ...extra] })
       socket.write(JSON.stringify({ ok: true }) + '\n')
     } catch (err) {
       socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
