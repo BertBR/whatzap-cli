@@ -61,7 +61,7 @@ function appendHistory(jid: string, entry: object): void {
   writeFileSync(filepath, existing.join('\n') + '\n')
 }
 
-interface HistoryEntry { ts: string; d: 'in' | 'out'; n?: string; text: string; id?: string; p?: string }
+interface HistoryEntry { ts: string; d: 'in' | 'out'; n?: string; text: string; id?: string; p?: string; q?: string }
 
 // Message ids are random, but refuse to guess if one shows up in more than
 // one chat: replying in the wrong conversation is worse than not replying.
@@ -231,6 +231,8 @@ async function main(): Promise<void> {
       // id and sender let `whatzap reply` quote the message and mention its author
       id: key.id ?? undefined,
       p: participant ?? undefined,
+      // id of the message this one replies to, when it quotes another
+      q: message?.extendedTextMessage?.contextInfo?.stanzaId ?? undefined,
     })
   })
 
