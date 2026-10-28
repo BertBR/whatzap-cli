@@ -248,6 +248,8 @@ async function main(): Promise<void> {
       // Tipo sem texto (figurinha, documento, localização...): registra que chegou, para não sumir em silêncio.
       (kind && !key.fromMe && kind !== 'protocolMessage' && kind !== 'reactionMessage' && kind !== 'senderKeyDistributionMessage' ? `[mensagem sem texto: ${kind}]` : undefined)
     if (!text) return
+    // contextInfo de onde o texto saiu: citação e "encaminhada" valem também para legenda e envoltório.
+    const ctx = inner?.extendedTextMessage?.contextInfo ?? inner?.imageMessage?.contextInfo ?? inner?.videoMessage?.contextInfo ?? inner?.documentMessage?.contextInfo ?? (kind ? inner?.[kind]?.contextInfo : undefined)
 
     if (key.fromMe) {
       appendHistory(remoteJid, {
@@ -272,11 +274,11 @@ async function main(): Promise<void> {
       id: key.id ?? undefined,
       p: participant ?? undefined,
       // id of the message this one replies to, when it quotes another
-      q: message?.extendedTextMessage?.contextInfo?.stanzaId ?? undefined,
+      q: ctx?.stanzaId ?? undefined,
       // sender's phone JID as reported by the server (groups address people by LID)
       pn: (key as any).participantPn ?? undefined,
       // forwarded text was written by someone else; never treat it as the sender's own words
-      fw: message?.extendedTextMessage?.contextInfo?.isForwarded ? true : undefined,
+      fw: ctx?.isForwarded ? true : undefined,
     })
   })
 
