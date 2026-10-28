@@ -99,6 +99,12 @@ export class WhatsAppService {
     })
   }
 
+  /** Voice note (push-to-talk), optionally quoting a message. Expects OGG/Opus. */
+  async sendVoice(jid: string, audio: Buffer, options: SendOptions = {}): Promise<void> {
+    if (!this.socket) throw new Error('Not connected')
+    await this.socket.sendMessage(jid, { audio, mimetype: 'audio/ogg; codecs=opus', ptt: true }, options.quoted ? { quoted: options.quoted as any } : undefined)
+  }
+
   async sendMessage(jid: string, text: string, options: SendOptions = {}): Promise<void> {
     if (!this.socket) throw new Error('Not connected')
     // Resolve the canonical JID from WhatsApp's servers.

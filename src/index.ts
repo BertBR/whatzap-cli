@@ -131,6 +131,20 @@ async function main() {
       break
     }
 
+    case 'reply-audio': {
+      const [id, file] = args
+      if (!id || !file) {
+        console.error('Usage: whatzap reply-audio <message id> <file.ogg>')
+        process.exit(1)
+      }
+      const { ensureDaemon, replyAudioViaDaemon } = await import('./daemon/client.js')
+      const { resolve } = await import('path')
+      await ensureDaemon()
+      try { await replyAudioViaDaemon(id, resolve(file)); console.log('Voice reply sent.') }
+      catch (err) { console.error(err instanceof Error ? err.message : String(err)); process.exitCode = 1 }
+      break
+    }
+
     case 'restart':
       await restart()
       break

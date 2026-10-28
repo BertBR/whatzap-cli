@@ -85,6 +85,11 @@ export async function replyViaDaemon(id: string, text: string, mentions: string[
   if (!res.ok) throw new Error(res.error ?? 'Reply failed')
 }
 
+export async function replyAudioViaDaemon(id: string, file: string): Promise<void> {
+  const res = await sendRequest<{ ok: boolean; error?: string }>({ command: 'reply-audio', id, text: file }, 60000)
+  if (!res.ok) throw new Error(res.error ?? 'Reply failed')
+}
+
 export async function stopDaemon(): Promise<void> {
   await sendRequest<{ ok: boolean }>({ command: 'stop' })
 }
