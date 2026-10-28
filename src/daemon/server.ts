@@ -205,6 +205,29 @@ async function main(): Promise<void> {
     const remoteJid = resolvedJid
     if (!watchSet.has(remoteJid)) return
 
+    // Images (also inside an album) are saved too, with the caption as text.
+    const image = (message as any)?.imageMessage ?? (message as any)?.ephemeralMessage?.message?.imageMessage
+    if (image && !key.fromMe) {
+      const isGroup = remoteJid.endsWith('@g.us')
+      if (isGroup && !key.participant) return
+      const id = key.id ?? String(Date.now())
+      service.downloadMedia({ key, message }).then((buf) => {
+        mkdirSync(MEDIA_DIR, { recursive: true, mode: 0o700 })
+        const file = join(MEDIA_DIR, `${id.replace(/[^A-Za-z0-9_-]/g, '')}.jpg`)
+        writeFileSync(file, buf, { mode: 0o600 })
+        appendHistory(remoteJid, {
+          ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined,
+          text: image.caption ? `[imagem] ${image.caption}` : '[imagem]',
+          id: key.id ?? undefined, p: key.participant ?? undefined,
+          q: image.contextInfo?.stanzaId ?? undefined, pn: (key as any).participantPn ?? undefined,
+          fw: image.contextInfo?.isForwarded ? true : undefined, image: file,
+        })
+      }).catch(() => {
+        appendHistory(remoteJid, { ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined, text: '[imagem: download falhou]', id: key.id ?? undefined, p: key.participant ?? undefined })
+      })
+      return
+    }
+
     // Voice notes and audio files are saved next to the history; the entry
     // points to the file so whoever reads the history can transcribe it.
     const audio = message?.audioMessage
