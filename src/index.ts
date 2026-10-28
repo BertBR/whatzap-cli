@@ -117,7 +117,10 @@ async function main() {
     case 'reply': {
       // --mention <jid> (repeatable) mentions more people; the text must carry "@<number>" for each
       const extra: string[] = []
-      while (args[0] === '--mention' && args[1]) { extra.push(args[1]); args.splice(0, 2) }
+      // accepted anywhere, so a flag placed after the text never leaks into the message
+      for (let i = args.indexOf('--mention'); i !== -1 && args[i + 1]; i = args.indexOf('--mention')) {
+        extra.push(args[i + 1]); args.splice(i, 2)
+      }
       const [id, ...rest] = args
       const message = rest.join(' ')
       if (!id || !message) {
