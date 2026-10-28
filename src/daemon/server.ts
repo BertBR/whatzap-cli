@@ -1,6 +1,7 @@
 import net from 'net'
 import { existsSync, writeFileSync, readFileSync, unlinkSync, mkdirSync } from 'fs'
 import { execFileSync } from 'child_process'
+import { randomUUID } from 'crypto'
 import { homedir } from 'os'
 import { join } from 'path'
 import { WhatsAppService } from '../services/whatsapp.js'
@@ -50,6 +51,12 @@ let server: net.Server
 
 const HISTORY_MAX = 100
 const MEDIA_DIR = join(WHATZAP_DIR, 'media')
+// The message id is chosen by the sender's device: a random suffix keeps one
+// sender from overwriting another's file, and 'wx' refuses to overwrite at all.
+function mediaName(id: string, ext: string): string {
+  const safe = id.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64) || 'media'
+  return `${safe}-${randomUUID().slice(0, 8)}.${ext}`
+}
 
 function appendHistory(jid: string, entry: object): void {
   mkdirSync(HISTORY_DIR, { recursive: true })
@@ -213,8 +220,8 @@ async function main(): Promise<void> {
       const id = key.id ?? String(Date.now())
       service.downloadMedia({ key, message }).then((buf) => {
         mkdirSync(MEDIA_DIR, { recursive: true, mode: 0o700 })
-        const file = join(MEDIA_DIR, `${id.replace(/[^A-Za-z0-9_-]/g, '')}.jpg`)
-        writeFileSync(file, buf, { mode: 0o600 })
+        const file = join(MEDIA_DIR, mediaName(id, 'jpg'))
+        writeFileSync(file, buf, { mode: 0o600, flag: 'wx' })
         appendHistory(remoteJid, {
           ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined,
           text: image.caption ? `[imagem] ${image.caption}` : '[imagem]',
@@ -237,8 +244,8 @@ async function main(): Promise<void> {
       const id = key.id ?? String(Date.now())
       service.downloadMedia({ key, message }).then((buf) => {
         mkdirSync(MEDIA_DIR, { recursive: true, mode: 0o700 })
-        const file = join(MEDIA_DIR, `${id.replace(/[^A-Za-z0-9_-]/g, '')}.ogg`)
-        writeFileSync(file, buf, { mode: 0o600 })
+        const file = join(MEDIA_DIR, mediaName(id, 'ogg'))
+        writeFileSync(file, buf, { mode: 0o600, flag: 'wx' })
         appendHistory(remoteJid, {
           ts: new Date().toISOString(),
           d: 'in',
