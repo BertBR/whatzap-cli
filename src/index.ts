@@ -131,6 +131,21 @@ async function main() {
       break
     }
 
+    case 'send-audio': {
+      const [phone, file] = args
+      if (!phone || !file) {
+        console.error('Usage: whatzap send-audio <phone> <file.ogg>')
+        process.exit(1)
+      }
+      const { ensureDaemon, sendAudioViaDaemon } = await import('./daemon/client.js')
+      const { resolve } = await import('path')
+      await ensureDaemon()
+      const jid = `${phone.replace(/\D/g, '')}@s.whatsapp.net`
+      try { await sendAudioViaDaemon(jid, resolve(file)); console.log('Voice message sent.') }
+      catch (err) { console.error(err instanceof Error ? err.message : String(err)); process.exitCode = 1 }
+      break
+    }
+
     case 'reply-audio': {
       const [id, file] = args
       if (!id || !file) {

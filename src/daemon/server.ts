@@ -136,6 +136,14 @@ async function handleRequest(line: string, socket: net.Socket): Promise<void> {
     } catch (err) {
       socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
     }
+  } else if (req.command === 'send-audio') {
+    try {
+      if (!req.text || !req.text.endsWith('.ogg') || !existsSync(req.text)) throw new Error('Audio must be an existing .ogg file')
+      await service.sendVoice(req.jid!, readFileSync(req.text))
+      socket.write(JSON.stringify({ ok: true }) + '\n')
+    } catch (err) {
+      socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
+    }
   } else if (req.command === 'reply-audio') {
     // Voice note quoting a recorded message. Only .ogg files, read by the daemon itself.
     try {
