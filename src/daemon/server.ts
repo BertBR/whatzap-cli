@@ -236,9 +236,17 @@ async function main(): Promise<void> {
       return
     }
 
+    // Mensagens com envoltório (temporária, visualização única, editada) trazem o conteúdo dentro.
+    const inner: any = (message as any)?.ephemeralMessage?.message ?? (message as any)?.viewOnceMessage?.message ?? (message as any)?.viewOnceMessageV2?.message ?? (message as any)?.editedMessage?.message?.protocolMessage?.editedMessage ?? message
+    const kind = inner ? Object.keys(inner).find((k) => k !== 'messageContextInfo') : undefined
     const text =
-      message?.conversation ??
-      message?.extendedTextMessage?.text
+      inner?.conversation ??
+      inner?.extendedTextMessage?.text ??
+      inner?.imageMessage?.caption ??
+      inner?.videoMessage?.caption ??
+      inner?.documentMessage?.caption ??
+      // Tipo sem texto (figurinha, documento, localização...): registra que chegou, para não sumir em silêncio.
+      (kind && !key.fromMe && kind !== 'protocolMessage' && kind !== 'reactionMessage' && kind !== 'senderKeyDistributionMessage' ? `[mensagem sem texto: ${kind}]` : undefined)
     if (!text) return
 
     if (key.fromMe) {
