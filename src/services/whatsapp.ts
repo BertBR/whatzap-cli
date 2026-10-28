@@ -1,4 +1,5 @@
 import makeWASocket, {
+  downloadMediaMessage,
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   DisconnectReason,
@@ -166,6 +167,13 @@ export class WhatsAppService {
       result[jid] = meta.subject
     }
     return result
+  }
+
+  /** Downloads the media of a received message (audio, image...) as a buffer. */
+  async downloadMedia(msg: { key: import('@whiskeysockets/baileys').WAMessageKey; message: import('@whiskeysockets/baileys').WAMessage['message'] }): Promise<Buffer> {
+    if (!this.socket) throw new Error('Not connected')
+    const sock = this.socket
+    return downloadMediaMessage(msg as any, 'buffer', {}, { logger: noopLogger as any, reuploadRequest: sock.updateMediaMessage })
   }
 
   onMessage(handler: (msg: { key: import('@whiskeysockets/baileys').WAMessageKey; message: import('@whiskeysockets/baileys').WAMessage['message']; pushName?: string | null }) => void): void {

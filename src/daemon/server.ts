@@ -49,6 +49,7 @@ const groupCache = new Map<string, string>() // jid → name
 let server: net.Server
 
 const HISTORY_MAX = 100
+const MEDIA_DIR = join(WHATZAP_DIR, 'media')
 
 function appendHistory(jid: string, entry: object): void {
   mkdirSync(HISTORY_DIR, { recursive: true })
@@ -203,6 +204,37 @@ async function main(): Promise<void> {
     const resolvedJid = rawJid.endsWith('@lid') ? ((key as any).senderPn ?? rawJid) : rawJid
     const remoteJid = resolvedJid
     if (!watchSet.has(remoteJid)) return
+
+    // Voice notes and audio files are saved next to the history; the entry
+    // points to the file so whoever reads the history can transcribe it.
+    const audio = message?.audioMessage
+    if (audio && !key.fromMe) {
+      const isGroup = remoteJid.endsWith('@g.us')
+      if (isGroup && !key.participant) return
+      const id = key.id ?? String(Date.now())
+      service.downloadMedia({ key, message }).then((buf) => {
+        mkdirSync(MEDIA_DIR, { recursive: true, mode: 0o700 })
+        const file = join(MEDIA_DIR, `${id.replace(/[^A-Za-z0-9_-]/g, '')}.ogg`)
+        writeFileSync(file, buf, { mode: 0o600 })
+        appendHistory(remoteJid, {
+          ts: new Date().toISOString(),
+          d: 'in',
+          n: pushName ?? undefined,
+          text: '[audio]',
+          id: key.id ?? undefined,
+          p: key.participant ?? undefined,
+          q: audio.contextInfo?.stanzaId ?? undefined,
+          pn: (key as any).participantPn ?? undefined,
+          fw: audio.contextInfo?.isForwarded ? true : undefined,
+          audio: file,
+          sec: audio.seconds ?? undefined,
+        })
+      }).catch(() => {
+        // download failed: record that an audio arrived so it is not silently lost
+        appendHistory(remoteJid, { ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined, text: '[audio: download failed]', id: key.id ?? undefined, p: key.participant ?? undefined })
+      })
+      return
+    }
 
     const text =
       message?.conversation ??
