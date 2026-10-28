@@ -140,7 +140,8 @@ async function main() {
       const { ensureDaemon, sendAudioViaDaemon } = await import('./daemon/client.js')
       const { resolve } = await import('path')
       await ensureDaemon()
-      const jid = `${phone.replace(/\D/g, '')}@s.whatsapp.net`
+      // a full JID (e.g. 123@lid) is used as is; a phone becomes <digits>@s.whatsapp.net
+      const jid = phone.includes('@') ? phone : `${phone.replace(/\D/g, '')}@s.whatsapp.net`
       try { await sendAudioViaDaemon(jid, resolve(file)); console.log('Voice message sent.') }
       catch (err) { console.error(err instanceof Error ? err.message : String(err)); process.exitCode = 1 }
       break
