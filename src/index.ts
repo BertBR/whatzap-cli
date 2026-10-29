@@ -147,6 +147,19 @@ async function main() {
       break
     }
 
+    case 'delete': {
+      const [id] = args
+      if (!id) {
+        console.error('Usage: whatzap delete <message id>')
+        process.exit(1)
+      }
+      const { ensureDaemon, deleteViaDaemon } = await import('./daemon/client.js')
+      await ensureDaemon()
+      try { await deleteViaDaemon(id); console.log('Message deleted.') }
+      catch (err) { console.error(err instanceof Error ? err.message : String(err)); process.exitCode = 1 }
+      break
+    }
+
     case 'reply-audio': {
       const [id, file] = args
       if (!id || !file) {

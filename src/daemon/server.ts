@@ -144,6 +144,17 @@ async function handleRequest(line: string, socket: net.Socket): Promise<void> {
     } catch (err) {
       socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
     }
+  } else if (req.command === 'delete') {
+    // Only messages we sent (recorded as "out" in the history) can be deleted.
+    try {
+      const found = findHistoryEntry(req.id!)
+      if (!found) throw new Error(`Message '${req.id}' not found in watched history`)
+      if (found.entry.d !== 'out') throw new Error('Only messages sent by us can be deleted')
+      await service.deleteOwn(found.jid, found.entry.id!)
+      socket.write(JSON.stringify({ ok: true }) + '\n')
+    } catch (err) {
+      socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
+    }
   } else if (req.command === 'reply-audio') {
     // Voice note quoting a recorded message. Only .ogg files, read by the daemon itself.
     try {

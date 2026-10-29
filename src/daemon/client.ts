@@ -95,6 +95,11 @@ export async function replyAudioViaDaemon(id: string, file: string): Promise<voi
   if (!res.ok) throw new Error(res.error ?? 'Reply failed')
 }
 
+export async function deleteViaDaemon(id: string): Promise<void> {
+  const res = await sendRequest<{ ok: boolean; error?: string }>({ command: 'delete', id })
+  if (!res.ok) throw new Error(res.error ?? 'Delete failed')
+}
+
 export async function stopDaemon(): Promise<void> {
   await sendRequest<{ ok: boolean }>({ command: 'stop' })
 }

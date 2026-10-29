@@ -63,6 +63,7 @@ Installs the Claude Code skill and authenticates with your WhatsApp account via 
 | `whatzap reply <message id> <message>` | Reply to a recorded message, quoting it and mentioning its sender |
 | `whatzap reply-audio <message id> <file.ogg>` | Reply to a recorded message with a voice note |
 | `whatzap send-audio <phone\|jid> <file.ogg>` | Send a voice note to a phone number or JID |
+| `whatzap delete <message id>` | Delete, for everyone, a message we sent |
 | `whatzap find-contact <name>` | Search macOS Contacts by name, returns JSON |
 | `whatzap add-watch <phone\|group name>` | Start recording messages for a contact or group |
 | `whatzap remove-watch <phone\|group name>` | Stop recording messages |
@@ -133,6 +134,14 @@ Sends an Ogg/Opus file as a voice note (push-to-talk). `send-audio` takes a phon
 ffmpeg -i note.wav -c:a libopus -b:a 32k note.ogg
 whatzap reply-audio 3EB05F011B6AFCBB71534D note.ogg
 ```
+
+### Delete a Message
+
+```bash
+whatzap delete <message id>
+```
+
+Deletes, for everyone, a message sent by this account and recorded in a watched contact or group (an `"out"` history entry). Messages from other people are refused. WhatsApp only allows this for a while after sending.
 
 ### Find a Contact (macOS only)
 
