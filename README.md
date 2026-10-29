@@ -112,6 +112,12 @@ Replies to a message recorded in a watched contact or group (see [Watch a Contac
 whatzap reply 3EB05F011B6AFCBB71534D Deploy is live!
 ```
 
+Use `--mention <jid>` (repeatable, anywhere in the arguments) to mention more people; the JID must also appear as `@<number>` in the text for WhatsApp to highlight it:
+
+```bash
+whatzap reply --mention 120363000000001@lid 3EB05F011B6AFCBB71534D @120363000000001 please check
+```
+
 ### Find a Contact (macOS only)
 
 ```bash
@@ -144,7 +150,8 @@ whatzap add-watch Work Team
 Messages are written to `~/.whatzap/history/` as newline-delimited JSON:
 
 ```json
-{"ts":"2026-03-22T10:00:00.000Z","d":"in","n":"Carlos","text":"Hello!","id":"3EB05F011B6AFCBB71534D","p":"120363000000000@lid"}
+{"ts":"2026-03-22T10:00:00.000Z","d":"in","n":"Carlos","text":"Hello!","id":"3EB05F011B6AFCBB71534D","p":"120363000000000@lid","pn":"5511999999999@s.whatsapp.net"}
+{"ts":"2026-03-22T10:00:30.000Z","d":"in","n":"Carlos","text":"[audio]","id":"3EB0AA00000000000000AA","q":"3EB05F011B6AFCBB71534D","audio":"/home/me/.whatzap/media/3EB0AA00000000000000AA-1a2b3c4d.ogg","sec":12}
 {"ts":"2026-03-22T10:01:00.000Z","d":"out","text":"Sure, see you there!"}
 ```
 
@@ -156,8 +163,13 @@ Messages are written to `~/.whatzap/history/` as newline-delimited JSON:
 | `text` | Message text |
 | `id` | WhatsApp message id, used by `whatzap reply` |
 | `p` | Sender JID (incoming group messages only), mentioned by `whatzap reply` |
+| `pn` | Sender phone JID, when WhatsApp provides it (groups that use LIDs) |
+| `q` | Id of the message this one quotes (replies) |
+| `fw` | `true` when the message was forwarded |
+| `audio` | Path of the downloaded voice note (`~/.whatzap/media/`), with `sec` = duration |
+| `image` | Path of the downloaded image (`~/.whatzap/media/`); the caption goes in `text` |
 
-Non-text messages (images, audio, stickers) are not recorded. History is capped at the 100 most recent messages per contact or group.
+Captions, wrapped messages (ephemeral, view once, edited) and quotes are read from the part that carries the text. Other non-text messages (stickers, documents, locations) are recorded as `[non-text message: <type>]` so they don't disappear silently. Media files get a random suffix and are never overwritten. History is capped at the 100 most recent messages per contact or group.
 
 ### Manage the Watch List
 

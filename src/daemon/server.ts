@@ -224,13 +224,13 @@ async function main(): Promise<void> {
         writeFileSync(file, buf, { mode: 0o600, flag: 'wx' })
         appendHistory(remoteJid, {
           ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined,
-          text: image.caption ? `[imagem] ${image.caption}` : '[imagem]',
+          text: image.caption ? `[image] ${image.caption}` : '[image]',
           id: key.id ?? undefined, p: key.participant ?? undefined,
           q: image.contextInfo?.stanzaId ?? undefined, pn: (key as any).participantPn ?? undefined,
           fw: image.contextInfo?.isForwarded ? true : undefined, image: file,
         })
       }).catch(() => {
-        appendHistory(remoteJid, { ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined, text: '[imagem: download falhou]', id: key.id ?? undefined, p: key.participant ?? undefined })
+        appendHistory(remoteJid, { ts: new Date().toISOString(), d: 'in', n: pushName ?? undefined, text: '[image: download failed]', id: key.id ?? undefined, p: key.participant ?? undefined })
       })
       return
     }
@@ -266,7 +266,7 @@ async function main(): Promise<void> {
       return
     }
 
-    // Mensagens com envoltório (temporária, visualização única, editada) trazem o conteúdo dentro.
+    // Wrapped messages (ephemeral, view once, edited) carry the content inside.
     const inner: any = (message as any)?.ephemeralMessage?.message ?? (message as any)?.viewOnceMessage?.message ?? (message as any)?.viewOnceMessageV2?.message ?? (message as any)?.editedMessage?.message?.protocolMessage?.editedMessage ?? message
     const kind = inner ? Object.keys(inner).find((k) => k !== 'messageContextInfo') : undefined
     const text =
@@ -275,10 +275,10 @@ async function main(): Promise<void> {
       inner?.imageMessage?.caption ??
       inner?.videoMessage?.caption ??
       inner?.documentMessage?.caption ??
-      // Tipo sem texto (figurinha, documento, localização...): registra que chegou, para não sumir em silêncio.
-      (kind && !key.fromMe && kind !== 'protocolMessage' && kind !== 'reactionMessage' && kind !== 'senderKeyDistributionMessage' ? `[mensagem sem texto: ${kind}]` : undefined)
+      // Non-text types (sticker, document, location...): record that it arrived instead of dropping it silently.
+      (kind && !key.fromMe && kind !== 'protocolMessage' && kind !== 'reactionMessage' && kind !== 'senderKeyDistributionMessage' ? `[non-text message: ${kind}]` : undefined)
     if (!text) return
-    // contextInfo de onde o texto saiu: citação e "encaminhada" valem também para legenda e envoltório.
+    // contextInfo of the part that carries the text: quote and "forwarded" also apply to captions and wrappers.
     const ctx = inner?.extendedTextMessage?.contextInfo ?? inner?.imageMessage?.contextInfo ?? inner?.videoMessage?.contextInfo ?? inner?.documentMessage?.contextInfo ?? (kind ? inner?.[kind]?.contextInfo : undefined)
 
     if (key.fromMe) {
