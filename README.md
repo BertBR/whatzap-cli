@@ -61,6 +61,8 @@ Installs the Claude Code skill and authenticates with your WhatsApp account via 
 | `whatzap send-message <phone> <message>` | Send a text message (phone with country code) |
 | `whatzap send-group <group name> <message>` | Send a message to a WhatsApp group |
 | `whatzap reply <message id> <message>` | Reply to a recorded message, quoting it and mentioning its sender |
+| `whatzap reply-audio <message id> <file.ogg>` | Reply to a recorded message with a voice note |
+| `whatzap send-audio <phone\|jid> <file.ogg>` | Send a voice note to a phone number or JID |
 | `whatzap find-contact <name>` | Search macOS Contacts by name, returns JSON |
 | `whatzap add-watch <phone\|group name>` | Start recording messages for a contact or group |
 | `whatzap remove-watch <phone\|group name>` | Stop recording messages |
@@ -116,6 +118,20 @@ Use `--mention <jid>` (repeatable, anywhere in the arguments) to mention more pe
 
 ```bash
 whatzap reply --mention 120363000000001@lid 3EB05F011B6AFCBB71534D @120363000000001 please check
+```
+
+### Send a Voice Note
+
+```bash
+whatzap send-audio <phone|jid> <file.ogg>
+whatzap reply-audio <message id> <file.ogg>
+```
+
+Sends an Ogg/Opus file as a voice note (push-to-talk). `send-audio` takes a phone number or a full JID (e.g. `120363000000000@lid`, useful when a contact is only reachable by LID); `reply-audio` quotes a recorded message, like `reply`. Only existing `.ogg` files are accepted, and the daemon reads the file itself.
+
+```bash
+ffmpeg -i note.wav -c:a libopus -b:a 32k note.ogg
+whatzap reply-audio 3EB05F011B6AFCBB71534D note.ogg
 ```
 
 ### Find a Contact (macOS only)
