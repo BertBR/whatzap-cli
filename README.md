@@ -65,6 +65,7 @@ Installs the Claude Code skill and authenticates with your WhatsApp account via 
 | `whatzap reply <message id> <message>` | Reply to a recorded message, quoting it and mentioning its sender |
 | `whatzap reply-audio <message id> <file.ogg>` | Reply to a recorded message with a voice note |
 | `whatzap send-audio <phone\|jid> <file.ogg>` | Send a voice note to a phone number or JID |
+| `whatzap send-image <phone\|jid> <file.png\|jpg> [caption]` | Send an image (PNG or JPEG) with an optional caption |
 | `whatzap delete <message id>` | Delete, for everyone, a message we sent |
 | `whatzap find-contact <name>` | Search macOS Contacts by name, returns JSON |
 | `whatzap add-watch <phone\|group name>` | Start recording messages for a contact or group |

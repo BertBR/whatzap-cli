@@ -90,6 +90,11 @@ export async function sendAudioViaDaemon(jid: string, file: string): Promise<voi
   if (!res.ok) throw new Error(res.error ?? 'Send failed')
 }
 
+export async function sendImageViaDaemon(jid: string, file: string, caption?: string): Promise<void> {
+  const res = await sendRequest<{ ok: boolean; error?: string }>({ command: 'send-image', jid, text: file, caption }, 60000)
+  if (!res.ok) throw new Error(res.error ?? 'Send failed')
+}
+
 export async function replyAudioViaDaemon(id: string, file: string): Promise<void> {
   const res = await sendRequest<{ ok: boolean; error?: string }>({ command: 'reply-audio', id, text: file }, 60000)
   if (!res.ok) throw new Error(res.error ?? 'Reply failed')
