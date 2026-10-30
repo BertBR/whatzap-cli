@@ -160,6 +160,22 @@ async function main() {
       break
     }
 
+    case 'send-image': {
+      const [phone, file, ...captionParts] = args
+      if (!phone || !file) {
+        console.error('Usage: whatzap send-image <phone|jid> <file.png|jpg> [caption]')
+        process.exit(1)
+      }
+      const { ensureDaemon, sendImageViaDaemon } = await import('./daemon/client.js')
+      const { resolve } = await import('path')
+      await ensureDaemon()
+      const jid = phone.includes('@') ? phone : `${phone.replace(/\D/g, '')}@s.whatsapp.net`
+      const caption = captionParts.length ? captionParts.join(' ') : undefined
+      try { await sendImageViaDaemon(jid, resolve(file), caption); console.log('Image sent.') }
+      catch (err) { console.error(err instanceof Error ? err.message : String(err)); process.exitCode = 1 }
+      break
+    }
+
     case 'reply-audio': {
       const [id, file] = args
       if (!id || !file) {

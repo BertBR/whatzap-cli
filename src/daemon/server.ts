@@ -100,7 +100,7 @@ function cleanup(): void {
 }
 
 async function handleRequest(line: string, socket: net.Socket): Promise<void> {
-  let req: { command: string; jid?: string; text?: string; id?: string; mentions?: string[] }
+  let req: { command: string; jid?: string; text?: string; id?: string; mentions?: string[]; caption?: string }
   try {
     req = JSON.parse(line)
   } catch {
@@ -140,6 +140,14 @@ async function handleRequest(line: string, socket: net.Socket): Promise<void> {
     try {
       if (!req.text || !req.text.endsWith('.ogg') || !existsSync(req.text)) throw new Error('Audio must be an existing .ogg file')
       await service.sendVoice(req.jid!, readFileSync(req.text))
+      socket.write(JSON.stringify({ ok: true }) + '\n')
+    } catch (err) {
+      socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')
+    }
+  } else if (req.command === 'send-image') {
+    try {
+      if (!req.text || !/\.(png|jpe?g)$/i.test(req.text) || !existsSync(req.text)) throw new Error('Image must be an existing .png or .jpg file')
+      await service.sendImage(req.jid!, readFileSync(req.text), req.caption)
       socket.write(JSON.stringify({ ok: true }) + '\n')
     } catch (err) {
       socket.write(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }) + '\n')

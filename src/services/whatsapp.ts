@@ -111,6 +111,11 @@ export class WhatsAppService {
     await this.socket.sendMessage(jid, { audio, mimetype: 'audio/ogg; codecs=opus', ptt: true }, options.quoted ? { quoted: options.quoted as any } : undefined)
   }
 
+  async sendImage(jid: string, image: Buffer, caption?: string): Promise<void> {
+    if (!this.socket) throw new Error('Not connected')
+    await this.socket.sendMessage(jid, { image, caption })
+  }
+
   async sendMessage(jid: string, text: string, options: SendOptions = {}): Promise<void> {
     if (!this.socket) throw new Error('Not connected')
     // Resolve the canonical JID from WhatsApp's servers.
