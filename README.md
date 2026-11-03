@@ -1,6 +1,6 @@
 # whatzap
 
-> **Fork with extra features** (reply with quotes and mentions, richer history with voice notes and images, sending voice notes, deleting our own messages). They were sent to the original project in [#1](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/1), [#2](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/2), [#3](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/3) and [#4](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/4). Original project: [CarlosAugustoAlves/whatzap-cli](https://github.com/CarlosAugustoAlves/whatzap-cli).
+> **Fork with extra features** (reply with quotes and mentions, richer history with voice notes and images, sending voice notes and images, deleting our own messages). They were sent to the original project in [#1](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/1), [#2](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/2), [#3](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/3), [#4](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/4) and [#5](https://github.com/CarlosAugustoAlves/whatzap-cli/pull/5). Original project: [CarlosAugustoAlves/whatzap-cli](https://github.com/CarlosAugustoAlves/whatzap-cli).
 
 **Give Claude, OpenClaw, and your shell scripts a WhatsApp voice.**
 
